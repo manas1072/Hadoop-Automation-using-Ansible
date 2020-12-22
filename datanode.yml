@@ -1,0 +1,59 @@
+- hosts: datanode
+  vars_files:
+     - dn_var.yml
+  tasks:
+  - name: "Copying the hadoop File"
+    copy:
+     src: "{{ hadoop_path }}"
+     dest: "/root/"
+
+  - name: "Copying the JDK File"
+    copy:
+     src: "{{ jdk_path }}"
+     dest: "/root/"
+
+  - name: "Installing Jdk"
+    shell: "rpm -ivh {{ jdk_software }}"
+    register: Java
+    ignore_errors: yes
+ 
+  - name: "Installing Hadoop"
+    shell: "rpm -ivh {{ hadoop_software }}  --force"
+    register: Hadoop
+    ignore_errors: yes
+ 
+ 
+  - name: "Copying the core-site.xml file"
+    copy:
+      src: "{{ core_site }}"
+      dest: "/etc/hadoop/"
+ 
+  - name: "Copying the hdfs-site.xml file"
+    copy:
+      src: "{{ hdfs_site }}"
+      dest: "/etc/hadoop/"
+ 
+  - name: "Creating a directory"
+    file:
+      state: directory
+      path: "{{ directory_path }}"
+ 
+
+  - name: "Stoping the datanode"
+    shell: "{{ stop_datanode }}"
+    ignore_errors: yes
+    register: hadoop_stopped
+
+
+  - name: "Starting the datanode"
+    shell: "{{ start_datanode }}"
+    ignore_errors: yes
+    register: hadoop_started
+
+  - name: "Java Process"
+    shell: "{{ run_jps }}"
+    register: jps
+
+  - name: "Java Process"
+    debug:
+     var: jps.stdout
